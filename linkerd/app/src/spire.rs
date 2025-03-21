@@ -68,7 +68,8 @@ impl tower::Service<()> for Client {
             // as the request to the `MakeConnection`.
             let chan = Endpoint::try_from(TONIC_DEFAULT_URI)?
                 .connect_with_connector(tower::util::service_fn(move |_: Uri| {
-                    UnixStream::connect(stripped_path.clone())
+                    use futures::TryFutureExt;
+                    UnixStream::connect(stripped_path.clone()).map_ok(hyper_util::rt::TokioIo::new)
                 }))
                 .await?;
 
